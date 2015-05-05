@@ -476,10 +476,10 @@ public class Game {
 
 	public static void main(String[] args) throws InterruptedException {
 		int[] totalScore = new int[TOTALGAMES];
-		for(int gameNo = 0; gameNo < TOTALGAMES; gameNo++) {
+		for(int gameNo = 1; gameNo <= TOTALGAMES; gameNo++) {
 			Game g = new Game();
 			g.rng.setSeed(System.currentTimeMillis());
-			for(int blockNo = 0; blockNo < 10000; blockNo++) {
+			for(int blockNo = 1; blockNo <= 10000; blockNo++) {
 				Block currentBlock = g.getRandomBlock();
 				State[] nextStates = g.tryAll(currentBlock);
 				double[] values = new double[nextStates.length];
@@ -509,14 +509,18 @@ public class Game {
 				g.updateWell(nextWell);
 				g.updateRows(rowsRemovedNow);
 				if(DEBUG && gameNo > 100) {
-					System.out.print("\n" + "Block no: " + blockNo + ". Current block type:");
-					System.out.println(currentBlock + "\n");
-					System.out.println("\nGame number " + gameNo + ". The updated value of state " + wellIndex +
-						" is " + updatedValue);
-					System.out.println("Rows height now is " + g.rowsHeight + " and the height increased by " +
-						rowsRemovedNow);
-					System.out.println(g);
+					System.out.print("Block no: " + blockNo + ". Current block type: ");
+					System.out.println(currentBlock + ".");
 					Thread.sleep(2000);
+					System.out.print("Game number " + gameNo + ". ");
+					System.out.println("The updated value of state " + wellIndex + " is " + updatedValue + ".");
+					System.out.print("Total penalty is " + g.rowsHeight);
+					if(rowsRemovedNow > 0) {
+						System.out.print(" (" + rowsRemovedNow + " this move)");
+					}
+					System.out.println(".");
+					System.out.println(g);
+					System.out.println();
 				}
 			}
 			System.out.println(gameNo);
