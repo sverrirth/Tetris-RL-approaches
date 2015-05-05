@@ -13,7 +13,8 @@ public class Tetris {
 		Tetris tet = new Tetris();
 		Board b = new Board(10, 20);
 		System.out.println(b);
-		for(int i = 0; i < 30; i++) {
+		int i = 0;
+		for(;; i++) {
 			Thread.sleep(1000);
 			Piece current = tet.getRandomPiece();
 			OrientedPiece bestPiece = null;
@@ -33,11 +34,11 @@ public class Tetris {
 			}
 			b.place(bestPiece, bestCol);
 			if(b.isTerminal()) {
-				System.out.println("We died.");
-				b = new Board(10, 20);
+				break;
 			}
 			System.out.println(b);
 		}
+		System.out.println("We managed " + i + "pieces.");
 	}
 
 	private Piece getRandomPiece() {

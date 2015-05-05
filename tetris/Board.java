@@ -57,7 +57,7 @@ public class Board {
 	public void removeFull() {
 		int mask;
 		boolean rowFull;
-		for(int i = 0; i < height; i++) {
+		for(int i = height-1; i >= 0; i--) {
 			mask = 1 << i;
 			rowFull = true;
 			for(int col : columns) {
