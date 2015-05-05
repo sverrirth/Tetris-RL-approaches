@@ -11,13 +11,11 @@ public class Game {
 	private boolean[][] well = new boolean[width][2];
 	private final java.util.Random rng = new Random();
 
-	private static final double gamma = 0.80;
-	private static final double alpha = 0.02;
-	private static final double reward = -100;
-
-	private static final int totalGames = 100;
-
-	private static final boolean debug = false;
+	private static final double GAMMA = 0.80;
+	private static final double ALPHA = 0.02;
+	private static final double REWARD = -100;
+	private static final int TOTALGAMES = 110;
+	private static final boolean DEBUG = true;
 
 	public Game(boolean[][] w) {
 		well = w;
@@ -477,8 +475,8 @@ public class Game {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		int[] totalScore = new int[totalGames];
-		for(int gameNo = 0; gameNo < totalGames; gameNo++) {
+		int[] totalScore = new int[TOTALGAMES];
+		for(int gameNo = 0; gameNo < TOTALGAMES; gameNo++) {
 			Game g = new Game();
 			g.rng.setSeed(System.currentTimeMillis());
 			for(int blockNo = 0; blockNo < 10000; blockNo++) {
@@ -490,7 +488,7 @@ public class Game {
 					boolean[][] currentWell = currentState.getWell();
 					int rowsRemoved = currentState.getRowsRemoved();
 					double thisValue = stateValues[wellToInt(currentWell)];
-					values[option] = reward * rowsRemoved + gamma * thisValue;
+					values[option] = REWARD * rowsRemoved + GAMMA * thisValue;
 					//System.out.println("Value of option " + wellToInt(currentWell) + 
 					//		" is " + thisValue + " and the rows removed will be " + rowsRemoved);
 				}
@@ -505,13 +503,13 @@ public class Game {
 				int rowsRemovedNow = nextState.getRowsRemoved();
 				int wellIndex = wellToInt(g.getWell());
 				double updatedValue =
-					stateValues[wellIndex] * (1 - alpha) +
-						(reward * rowsRemovedNow + gamma * stateValues[wellToInt(nextWell)]) * alpha;
+					stateValues[wellIndex] * (1 - ALPHA) +
+						(REWARD * rowsRemovedNow + GAMMA * stateValues[wellToInt(nextWell)]) * ALPHA;
 				stateValues[wellIndex] = updatedValue;
 				g.updateWell(nextWell);
 				g.updateRows(rowsRemovedNow);
-				if(debug) {
-					System.out.println("\n" + "Block no: " + blockNo + ". Current block type:");
+				if(DEBUG && gameNo > 100) {
+					System.out.print("\n" + "Block no: " + blockNo + ". Current block type:");
 					System.out.println(currentBlock + "\n");
 					System.out.println("\nGame number " + gameNo + ". The updated value of state " + wellIndex +
 						" is " + updatedValue);
