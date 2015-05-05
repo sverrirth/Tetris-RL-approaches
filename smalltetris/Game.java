@@ -1,14 +1,15 @@
 package smalltetris;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class Game {
 
 	private static final int width = 6;
 	private int rowsHeight = 0;
 	private static double[] stateValues = new double[1 << width * 2];
-
 	private boolean[][] well = new boolean[width][2];
+	private final java.util.Random rng = new Random();
 
 	private static final double gamma = 0.80;
 	private static final double alpha = 0.02;
@@ -310,7 +311,7 @@ public class Game {
 				return new State(clean(newWell), 0);
 			}
 		default: //this case won't happen
-			return new State(newWell, 0);
+			throw new RuntimeException("Impossible code path.");
 		}
 	}
 
@@ -444,13 +445,14 @@ public class Game {
 				ret[i] = addBlock(b, i);
 			}
 			break;
-		default: //do nothing
+		default:
+			throw new RuntimeException("Impossible code path.");
 		}
 		return ret;
 	}
 
-	public static Block getRandomBlock() {
-		int rand = (int)(Math.random() * 5);
+	public Block getRandomBlock() {
+		int rand = rng.nextInt(5);
 		if(rand == 0) { return Block.SINGLE; }
 		if(rand == 1) { return Block.STRAIGHT; }
 		if(rand == 2) { return Block.DIAGONAL; }
@@ -478,8 +480,9 @@ public class Game {
 		int[] totalScore = new int[totalGames];
 		for(int gameNo = 0; gameNo < totalGames; gameNo++) {
 			Game g = new Game();
+			g.rng.setSeed(System.currentTimeMillis());
 			for(int blockNo = 0; blockNo < 10000; blockNo++) {
-				Block currentBlock = getRandomBlock();
+				Block currentBlock = g.getRandomBlock();
 				State[] nextStates = g.tryAll(currentBlock);
 				double[] values = new double[nextStates.length];
 				for(int option = 0; option < nextStates.length; option++) {
