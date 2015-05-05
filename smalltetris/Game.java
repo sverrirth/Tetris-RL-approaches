@@ -1,4 +1,4 @@
-package smalltetris;
+package tetris;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -189,7 +189,7 @@ public class Game {
 					newWell[loc][0] = true;
 					newWell[loc + 1][0] = true;
 					newWell[loc + 1][1] = true;
-					return new State(clean(newWell), 1);
+					return new State(clean(newWell), 0);
 				}
 			} else if(b.getRotation() == 1) { //SOUTHWEST
 				if(well[loc][1] || well[loc + 1][1]) {
@@ -217,7 +217,7 @@ public class Game {
 					newWell[loc][0] = true;
 					newWell[loc + 1][0] = true;
 					newWell[loc][1] = true;
-					return new State(clean(newWell), 1);
+					return new State(clean(newWell), 0);
 				}
 			} else if(b.getRotation() == 2) { //NORTHWEST
 				if(well[loc][1]) {
