@@ -14,8 +14,8 @@ public class Game {
 	private static final double GAMMA = 0.80;
 	private static final double ALPHA = 0.02;
 	private static final double REWARD = -100;
-	private static final int TOTALGAMES = 110;
-	private static final boolean DEBUG = true;
+	private static final int TOTALGAMES = 100;
+	private static final boolean DEBUG = false;
 
 	public Game(boolean[][] w) {
 		well = w;
@@ -523,8 +523,8 @@ public class Game {
 					System.out.println();
 				}
 			}
-			System.out.println(gameNo);
-			totalScore[gameNo] = g.rowsHeight;
+			System.out.println(gameNo + ": " + g.rowsHeight);
+			totalScore[gameNo - 1] = g.rowsHeight;
 		}
 		System.out.println(Arrays.toString(totalScore));
 	}
