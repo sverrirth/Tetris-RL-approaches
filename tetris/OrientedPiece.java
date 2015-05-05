@@ -18,7 +18,7 @@ public class OrientedPiece {
 		}
 		for(int i = 0; i < a.length; i++) {
 			for(int j = 0; j < a[0].length; j++) {
-				int x = transformx(i, j, width(), r);
+				int x = transformx(i, j, columns.length, r);
 				int y = transformy(i, j, height, r);
 				columns[x] |= a[i][j] ? 1 << y : 0;
 			}
@@ -28,8 +28,7 @@ public class OrientedPiece {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + Arrays.hashCode(columns);
+		int result = prime + Arrays.hashCode(columns);
 		result = prime * result + height;
 		return result;
 	}
@@ -94,9 +93,9 @@ public class OrientedPiece {
 		s.append(height + "x" + columns.length + " piece:\n");
 		for(int i = height - 1; i >= 0; i--) {
 			for(int column : columns) {
-				s.append((column >> i & 1) == 1 ? "X" : " ");
+				s.append((column >> i & 1) == 1 ? 'X' : ' ');
 			}
-			s.append("\n");
+			s.append('\n');
 		}
 		return s.toString();
 	}

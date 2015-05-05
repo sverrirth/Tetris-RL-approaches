@@ -37,7 +37,7 @@ public class Board {
 		return ans;
 	}
 
-	public void place(OrientedPiece p, int col) {
+	public int place(OrientedPiece p, int col) {
 		if(col + p.width() > width || col < 0) { throw new IllegalArgumentException("Piece placed outside of board!"); }
 		int placementHeight = 0;
 		for(int w = 0; w < p.width(); w++) {
@@ -45,19 +45,20 @@ public class Board {
 		}
 		if(placementHeight + p.getHeight() > height) {
 			isTerminal = true;
-			return;
+			return 0;
 		}
 		for(int w = 0; w < p.width(); w++) {
 			int added = p.getColumn(w) << placementHeight;
 			columns[col + w] |= added;
 		}
-		removeFull();
+		return removeFull();
 	}
 
-	public void removeFull() {
+	public int removeFull() {
 		int mask;
+		int ans = 0;
 		boolean rowFull;
-		for(int i = height-1; i >= 0; i--) {
+		for(int i = height - 1; i >= 0; i--) {
 			mask = 1 << i;
 			rowFull = true;
 			for(int col : columns) {
@@ -68,8 +69,10 @@ public class Board {
 			}
 			if(rowFull) {
 				removeRow(i);
+				ans++;
 			}
 		}
+		return ans;
 	}
 
 	private void removeRow(int i) {

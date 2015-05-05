@@ -1,4 +1,4 @@
-package tetris;
+package smalltetris;
 
 import java.util.Arrays;
 import java.util.Random;
