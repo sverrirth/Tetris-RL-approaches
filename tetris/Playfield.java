@@ -1,31 +1,14 @@
 package tetris;
 
-import java.util.Arrays;
-
 /**
  * A playfield is a representation of the state of the playfield of a Tetris game.
- * It is a rectangular grid, which pieces may be dropped into.
+ * It is a grid which pieces may be dropped into.
  */
-public class Playfield {
-	/**
-	 * Representation of the columns of the playfield.
-	 * Each entry is an integer, where bit i is set
-	 * whenever the i:th square of the column, counted
-	 * from the bottom, is full.  
-	 */
-	private final int[] columns;
-	/**
-	 * The height of the Playfield.
-	 */
-	public final int height;
+public class Playfield extends Grid {
 	/**
 	 * True if the game is lost.
 	 */
 	private boolean terminated;
-	/**
-	 * The width of the Playfield.
-	 */
-	public final int width;
 
 	/**
 	 * Creates an empty width x height playfield.
@@ -33,10 +16,7 @@ public class Playfield {
 	 * @param height
 	 */
 	public Playfield(int width, int height) {
-		if(height > 31) { throw new IllegalArgumentException("Height too large for Board."); }
-		this.width = width;
-		this.height = height;
-		columns = new int[width];
+		super(width, height);
 		terminated = false;
 	}
 
@@ -45,33 +25,8 @@ public class Playfield {
 	 * @param pf
 	 */
 	public Playfield(Playfield pf) {
-		width = pf.width;
-		height = pf.height;
-		columns = Arrays.copyOf(pf.columns, pf.columns.length);
+		super(pf);
 		terminated = pf.terminated;
-	}
-
-	/**
-	 * @param column
-	 * @return The height of column number column.
-	 */
-	public int heightOf(int column) {
-		int c = columns[column];
-		int ans = 0;
-		while(c > 0) {
-			ans += 1;
-			c >>= 1;
-		}
-		return ans;
-	}
-
-	/**
-	 * @param row
-	 * @param col
-	 * @return True if (row, col) is full.
-	 */
-	protected boolean isSquareFull(int row, int col) {
-		return (columns[col] & 1 << row) != 0;
 	}
 
 	/**
@@ -115,17 +70,16 @@ public class Playfield {
 	 * @param col
 	 */
 	protected void placeWithoutClearing(OrientedPiece p, int col) {
-		if(col + p.width() > width || col < 0) { throw new IllegalArgumentException(
-			"Piece placed outside of playfield!"); }
+		if(col + p.width > width || col < 0) { throw new IllegalArgumentException("Piece placed outside of playfield!"); }
 		int placementHeight = 0;
-		for(int w = 0; w < p.width(); w++) {
-			placementHeight = max(placementHeight, heightOf(col + w) - p.heightAt(w));
+		for(int w = 0; w < p.width; w++) {
+			placementHeight = max(placementHeight, heightOf(col + w) - p.spaceBelow(w));
 		}
 		if(placementHeight + p.getHeight() > height) {
 			terminated = true;
 			return;
 		}
-		for(int w = 0; w < p.width(); w++) {
+		for(int w = 0; w < p.width; w++) {
 			int added = p.getColumn(w) << placementHeight;
 			columns[col + w] |= added;
 		}
@@ -160,22 +114,5 @@ public class Playfield {
 		for(int c = 0; c < width; c++) {
 			columns[c] = (columns[c] & highermask) >> 1 | columns[c] & lowermask;
 		}
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder s = new StringBuilder();
-		s.append(height + "x" + width + " playfield:\n");
-		for(int i = height - 1; i >= 0; i--) {
-			for(int column : columns) {
-				s.append((column >> i & 1) == 1 ? 'X' : ' ');
-			}
-			s.append('\n');
-		}
-		return s.toString();
-	}
-
-	static private int max(int a, int b) {
-		return a > b ? a : b;
 	}
 }

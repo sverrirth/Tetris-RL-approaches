@@ -1,55 +1,23 @@
 package tetris;
 
-import java.util.Arrays;
-
 /**
  * A piece for which an orientation has been chosen.
  */
-public class OrientedPiece {
-	/**
-	 * The columns of the piece, with the LSB of the column denoting the bottom
-	 * of the grid.
-	 */
-	private final int[] columns;
-	/**
-	 * The height of the grid.
-	 */
-	private final int height;
-
+public class OrientedPiece extends Grid {
 	/**
 	 * @param a The piece.
-	 * @param rotation The desired orientation of the piece.
+	 * @param r The desired orientation of the piece.
 	 */
-	public OrientedPiece(boolean[][] a, int rotation) {
-		final int r = rotation % 4;
-		if((r & 1) == 0) {
-			height = a[0].length;
-			columns = new int[a.length];
-		} else {
-			height = a.length;
-			columns = new int[a[0].length];
-		}
+	public OrientedPiece(boolean[][] a, int r) {
+		super((r & 1) == 0 ? a.length : a[0].length, (r & 1) == 0 ? a[0].length : a.length);
+		int rot = r % 4;
 		for(int i = 0; i < a.length; i++) {
 			for(int j = 0; j < a[0].length; j++) {
-				int x = transformx(i, j, columns.length, r);
-				int y = transformy(i, j, height, r);
+				int x = transformx(i, j, columns.length, rot);
+				int y = transformy(i, j, height, rot);
 				columns[x] |= a[i][j] ? 1 << y : 0;
 			}
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if(this == obj) { return true; }
-		if(obj == null) { return false; }
-		if(getClass() != obj.getClass()) { return false; }
-		OrientedPiece other = (OrientedPiece)obj;
-		if(height != other.height) { return false; }
-		if(!Arrays.equals(columns, other.columns)) { return false; }
-		return true;
 	}
 
 	/**
@@ -65,61 +33,6 @@ public class OrientedPiece {
 	 */
 	public int getHeight() {
 		return height;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		int prime = 31;
-		int result = prime + Arrays.hashCode(columns);
-		result = prime * result + height;
-		return result;
-	}
-
-	/**
-	 * The height of the empty space under the piece in
-	 * column index.
-	 * Example:
-	 * ##
-	 * #_
-	 * #_
-	 *  has height 0 in column 0 and height 2 in column 1.
-	 * @param index
-	 * @return The height of column index.
-	 */
-	public int heightAt(int index) {
-		int c = columns[index];
-		int ans = 1;
-		while(c == c >> ans << ans) {
-			ans++;
-		}
-		ans--;
-		return ans;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder s = new StringBuilder();
-		s.append(height + "x" + columns.length + " piece:\n");
-		for(int i = height - 1; i >= 0; i--) {
-			for(int column : columns) {
-				s.append((column >> i & 1) == 1 ? 'X' : ' ');
-			}
-			s.append('\n');
-		}
-		return s.toString();
-	}
-
-	/**
-	 * @return The width of this piece.
-	 */
-	public int width() {
-		return columns.length;
 	}
 
 	/**

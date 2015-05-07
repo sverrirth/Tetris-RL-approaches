@@ -12,6 +12,7 @@ public class Tetris implements cemethod.CEProblem {
 			this.pieces = pieces;
 		}
 	}
+
 	private final int h;
 	private final Random r;
 
@@ -58,7 +59,7 @@ public class Tetris implements cemethod.CEProblem {
 			int bestCol = 0;
 			double bestVal = 0;
 			for(OrientedPiece op : current) {
-				for(int c = 0; c + op.width() <= b.width; c++) {
+				for(int c = 0; c + op.width <= b.width; c++) {
 					Playfield testBoard = new Playfield(b);
 					testBoard.place(op, c);
 					double val = eval(testBoard, param);
