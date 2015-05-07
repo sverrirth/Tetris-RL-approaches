@@ -1,13 +1,8 @@
 package tetris;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
-public class Tetris {
-	private Random r;
-
+public class Tetris implements cemethod.CEProblem {
 	public class Result {
 		public final int lines;
 		public final int pieces;
@@ -17,61 +12,44 @@ public class Tetris {
 			this.pieces = pieces;
 		}
 	}
+	private final int h;
+	private final Random r;
 
-	public Tetris() {
+	private final int w;
+
+	public Tetris(int w, int h) {
 		r = new Random();
+		this.w = w;
+		this.h = h;
 	}
 
-	public static void main(String[] args) {
-		Tetris tet = new Tetris();
-		tet.experiment(100, 10);
+	@Override
+	public int dimension() {
+		return 22;
 	}
 
-	public void experiment(int sampleSizes, int kept) {
-		AIParameters sample;
-		Distribution d = new Distribution(21);
-		for(int gen = 0; gen < 20; gen++) {
-			List<AIParameters> params = new ArrayList<AIParameters>();
-			for(int smpls = 0; smpls < sampleSizes; smpls++) {
-				sample = d.sample(r);
-				sample.estimatedPerformance = performanceByPieceCount(sample, 30);
-				params.add(sample);
-			}
-			Collections.sort(params);
-			d = new Distribution(params.subList(0, kept), 2);
-
-			System.out.println("Done with generation " + gen + ": ");
-			for(AIParameters p : params) {
-				System.out.print((int)p.estimatedPerformance + " ");
-			}
-			System.out.println();
-			System.out.println("New mean: " + d.getMean());
-			System.out.println("New variance: " + d.avgVar());
-			System.out.println("New performance: " + (int)performanceByLineCount(d.getMean(), 30) + "\n");
-		}
-		System.out.println("We converged to " + d.getMean());
-	}
-
-	private double performanceByLineCount(AIParameters sample, int cnt) {
+	@Override
+	public double fitness(double[] v) {
 		double perf = 0;
-		for(int i = 0; i < cnt; i++) {
-			perf += runTrial(sample).lines;
+		for(int i = 0; i < 30; i++) {
+			perf += runTrial(v, false).pieces;
 		}
-		perf /= cnt;
+		perf /= 30;
 		return perf;
 	}
 
-	private double performanceByPieceCount(AIParameters sample, int cnt) {
-		double perf = 0;
-		for(int i = 0; i < cnt; i++) {
-			perf += runTrial(sample).pieces;
-		}
-		perf /= cnt;
-		return perf;
+	private Piece getRandomPiece() {
+		int n = r.nextInt(Piece.PIECES.length);
+		return Piece.PIECES[n];
 	}
 
-	public Result runTrial(AIParameters param) {
-		Board b = new Board(10, 20);
+	public Result runTrial(double[] param, boolean display) {
+		Playfield b;
+		if(display) {
+			b = new SwingPlayfield(w, h);
+		} else {
+			b = new Playfield(w, h);
+		}
 		int lines = 0;
 		int placed = 0;
 		while(!b.isTerminal()) {
@@ -81,7 +59,7 @@ public class Tetris {
 			double bestVal = 0;
 			for(OrientedPiece op : current) {
 				for(int c = 0; c + op.width() <= b.width; c++) {
-					Board testBoard = new Board(b);
+					Playfield testBoard = new Playfield(b);
 					testBoard.place(op, c);
 					double val = eval(testBoard, param);
 					if(val > bestVal || bestPiece == null) {
@@ -97,32 +75,27 @@ public class Tetris {
 		return new Result(lines, placed);
 	}
 
-	private Piece getRandomPiece() {
-		int n = r.nextInt(Piece.PIECES.length);
-		return Piece.PIECES[n];
+	private static int abs(int x) {
+		return x > 0 ? x : -x;
 	}
 
-	private static double eval(Board b, AIParameters params) {
+	public static double eval(Playfield b, double[] par) {
 		if(b.isTerminal()) { return -1.0 / 0.0; }
 		int maxh = 0;
-		int h = 0;
+		int hi = 0;
 		int lasth = 0;
 		double ans = 0;
 		for(int c = 0; c < b.width; c++) {
-			h = b.heightAt(c);
+			hi = b.heightOf(c);
 			if(c > 0) {
-				ans += params.par[c + b.width] * abs(h - lasth);
+				ans += par[c + b.width] * abs(hi - lasth);
 			}
-			ans += params.par[c] * h;
-			maxh = maxh < h ? h : maxh;
-			lasth = h;
+			ans += par[c] * hi;
+			maxh = maxh < hi ? hi : maxh;
+			lasth = hi;
 		}
-		ans += params.par[b.width] * maxh;
-		ans += params.par[2 * b.width] * b.numberOfHoles();
+		ans += par[b.width] * maxh;
+		ans += par[2 * b.width] * b.numberOfHoles();
 		return ans;
-	}
-
-	private static int abs(int x) {
-		return x > 0 ? x : -x;
 	}
 }

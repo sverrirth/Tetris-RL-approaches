@@ -1,4 +1,6 @@
 out
+doc
 .classpath
 .settings
 .project
+.pmd
