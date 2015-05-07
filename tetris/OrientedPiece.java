@@ -13,7 +13,7 @@ public class OrientedPiece extends Grid {
 		int rot = r % 4;
 		for(int i = 0; i < a.length; i++) {
 			for(int j = 0; j < a[0].length; j++) {
-				int x = transformx(i, j, columns.length, rot);
+				int x = transformx(i, j, width, rot);
 				int y = transformy(i, j, height, rot);
 				columns[x] |= a[i][j] ? 1 << y : 0;
 			}

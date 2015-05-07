@@ -19,8 +19,8 @@ public class Grid {
 	 */
 	public final int width;
 
-	public Grid(int height, int width) {
-		if(height > 31) { throw new IllegalArgumentException("Height too large for Grid."); }
+	public Grid(int width, int height) {
+		if(height > 30) { throw new IllegalArgumentException("Height too large for Grid."); }
 		this.width = width;
 		this.height = height;
 		columns = new int[width];
