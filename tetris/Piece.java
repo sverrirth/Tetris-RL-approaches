@@ -15,10 +15,15 @@ public class Piece implements Iterable<OrientedPiece> {
 	public static final Piece S = new Piece(new boolean[][]{{false, true, true}, {true, true, false}});
 	public static final Piece T = new Piece(new boolean[][]{{true, true, true}, {false, true, false}});
 	public static final Piece Z = new Piece(new boolean[][]{{true, true, false}, {false, true, true}});
+	public static final Piece DIAGONAL = new Piece(new boolean[][]{{true, false}, {false, true}});
+	public static final Piece POINT = new Piece(new boolean[][]{{true}});
+	public static final Piece TRIANGLE = new Piece(new boolean[][]{{true, true}, {true, false}});
+	public static final Piece STRAIGHT = new Piece(new boolean[][]{{true, true}});
 	/**
 	 * The standard set of pieces for tetris.
 	 */
 	public static final Piece[] PIECES = new Piece[]{I, O, T, S, Z, J, L};
+	public static final Piece[] SMALLPIECES = new Piece[]{O, DIAGONAL, POINT, TRIANGLE, STRAIGHT};
 
 	/**
 	 * A list of all the possible oriented versions of the piece.

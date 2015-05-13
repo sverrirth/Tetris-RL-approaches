@@ -5,12 +5,32 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * This utility class implements the cross-entropy method for optimization.
+ * This class implements the cross-entropy method for optimization.
  */
 public final class CESolve {
-	private CESolve() {
+	private LinkedBlockingQueue<Subproblem> q;
+	private LinkedBlockingQueue<Perf> qq;
+	private List<CEWorker> workers;
+	private Random r;
+
+	public CESolve(Random random) {
+		q = new LinkedBlockingQueue<Subproblem>();
+		qq = new LinkedBlockingQueue<Perf>();
+		workers = new ArrayList<CEWorker>();
+		for(int i = 0; i < 8; i++) {
+			workers.add(new CEWorker(q, qq));
+			workers.get(i).start();
+		}
+		r = random;
+	}
+
+	public void shutdown() {
+		for(CEWorker w : workers) {
+			w.interrupt();
+		}
 	}
 
 	/**
@@ -20,28 +40,36 @@ public final class CESolve {
 	 * @param prob The problem to solve.
 	 * @param r The source of randomness to use.
 	 * @return The final value.
+	 * @throws InterruptedException In case it is interrupted while working.
 	 */
-	public static double[] solve(int sampleSizes, int kept, int generations, CEProblem prob, Random r) {
+	public double[] solve(CEProblem p, int sampleSizes, int kept, int generations) throws InterruptedException {
 		Point sample;
-		Distribution d = new NormalDistribution(prob.dimension());
+		Distribution d = new NormalDistribution(p.dimension());
+		List<Point> params = new ArrayList<Point>();
+
 		for(int gen = 0; gen < generations; gen++) {
-			List<Point> params = new ArrayList<Point>();
+			params.clear();
 			for(int smpls = 0; smpls < sampleSizes; smpls++) {
 				sample = new Point(d.sample(r));
-				sample.performance = prob.fitness(sample.par);
 				params.add(sample);
+				q.add(new Subproblem(p, sample.par, smpls));
+			}
+
+			for(int smpls = 0; smpls < sampleSizes; smpls++) {
+				Perf perf = qq.take();
+				params.get(perf.index).performance = perf.performance;
 			}
 			Collections.sort(params);
-			d = new NormalDistribution(params.subList(0, kept), 2);
+			d = new NormalDistribution(params.subList(0, kept), 1 + 2.0 * (generations - gen) / generations);
 
 			System.out.println("Done with generation " + gen + ": ");
-			for(Point p : params) {
-				System.out.print((int)p.performance + " ");
+			for(Point point : params) {
+				System.out.print((int)point.performance + " ");
 			}
 			System.out.println();
 			System.out.println("New mean: " + Arrays.toString(d.getMean()));
 			System.out.println("New variance: " + d.avgVar());
-			System.out.println("New performance: " + (int)prob.fitness(d.getMean()) + "\n");
+			System.out.println("New performance: " + (int)p.fitness(d.getMean()) + "\n");
 		}
 		return d.getMean();
 	}

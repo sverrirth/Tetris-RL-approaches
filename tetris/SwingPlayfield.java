@@ -33,9 +33,10 @@ public class SwingPlayfield extends Playfield {
 			super();
 			squareColors = new Color[w][h];
 			Dimension d = new Dimension(w * 20, h * 20);
-			setSize(d);
 			setMinimumSize(d);
 			setMaximumSize(d);
+			setPreferredSize(d);
+			setSize(d);
 		}
 
 		/* (non-Javadoc)
@@ -85,9 +86,9 @@ public class SwingPlayfield extends Playfield {
 
 	private void initializeSwing() {
 		JFrame f = new JFrame("Tetris");
-		f.setSize(width * 20, height * 20);
 		td = new TetrisDrawable(width, height);
 		f.add(td);
+		f.pack();
 		f.setVisible(true);
 		update();
 	}
@@ -100,7 +101,7 @@ public class SwingPlayfield extends Playfield {
 		placeWithoutClearing(op, col);
 		update();
 		try {
-			Thread.sleep(200);
+			Thread.sleep(100);
 		} catch(InterruptedException e) {
 			// Do nothing.
 		}
@@ -109,7 +110,7 @@ public class SwingPlayfield extends Playfield {
 		update();
 		update();
 		try {
-			Thread.sleep(200);
+			Thread.sleep(100);
 		} catch(InterruptedException e) {
 			// Do nothing.
 		}

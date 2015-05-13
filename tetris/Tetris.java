@@ -14,9 +14,8 @@ public class Tetris implements cemethod.CEProblem {
 	}
 
 	private final int h;
-	private final Random r;
-
 	private final int w;
+	private final Random r;
 
 	public Tetris(int w, int h) {
 		r = new Random();
@@ -83,6 +82,7 @@ public class Tetris implements cemethod.CEProblem {
 	public static double eval(Playfield b, double[] par) {
 		if(b.isTerminal()) { return -1.0 / 0.0; }
 		int maxh = 0;
+		int minh = 0;
 		int hi = 0;
 		int lasth = 0;
 		double ans = 0;
@@ -93,6 +93,7 @@ public class Tetris implements cemethod.CEProblem {
 			}
 			ans += par[c] * hi;
 			maxh = maxh < hi ? hi : maxh;
+			minh = minh > hi ? hi : minh;
 			lasth = hi;
 		}
 		ans += par[b.width] * maxh;

@@ -108,7 +108,7 @@ public class Playfield extends Grid {
 		return ans;
 	}
 
-	private void removeRow(int i) {
+	protected void removeRow(int i) {
 		int lowermask = (1 << i) - 1;
 		int highermask = (1 << height) - 1 - lowermask - (1 << i);
 		for(int c = 0; c < width; c++) {
