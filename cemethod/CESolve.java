@@ -16,11 +16,11 @@ public final class CESolve {
 	private List<CEWorker> workers;
 	private Random r;
 
-	public CESolve(Random random) {
+	public CESolve(Random random, int threads) {
 		q = new LinkedBlockingQueue<Subproblem>();
 		qq = new LinkedBlockingQueue<Perf>();
 		workers = new ArrayList<CEWorker>();
-		for(int i = 0; i < 8; i++) {
+		for(int i = 0; i < threads; i++) {
 			workers.add(new CEWorker(q, qq));
 			workers.get(i).start();
 		}
@@ -47,20 +47,19 @@ public final class CESolve {
 		Distribution d = new NormalDistribution(p.dimension());
 		List<Point> params = new ArrayList<Point>();
 
-		for(int gen = 0; gen < generations; gen++) {
+		for(int gen = 1; gen <= generations; gen++) {
 			params.clear();
 			for(int smpls = 0; smpls < sampleSizes; smpls++) {
 				sample = new Point(d.sample(r));
-				params.add(sample);
 				q.add(new Subproblem(p, sample.par, smpls));
+				params.add(sample);
 			}
-
 			for(int smpls = 0; smpls < sampleSizes; smpls++) {
 				Perf perf = qq.take();
 				params.get(perf.index).performance = perf.performance;
 			}
 			Collections.sort(params);
-			d = new NormalDistribution(params.subList(0, kept), 1 + 2.0 * (generations - gen) / generations);
+			d = new NormalDistribution(params.subList(0, kept), 5.0 - 0.1*gen);
 
 			System.out.println("Done with generation " + gen + ": ");
 			for(Point point : params) {

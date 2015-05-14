@@ -15,7 +15,7 @@ public class SwingPlayfield extends Playfield {
 	/**
 	 * A tetris playfield Swing component.
 	 */
-	public class TetrisDrawable extends JPanel {
+	class TetrisDrawable extends JPanel {
 		/**
 		 * Displayed in top left corner.
 		 */
@@ -75,15 +75,6 @@ public class SwingPlayfield extends Playfield {
 		initializeSwing();
 	}
 
-	/**
-	 * Copies pf.
-	 * @param pf
-	 */
-	public SwingPlayfield(Playfield pf) {
-		super(pf);
-		initializeSwing();
-	}
-
 	private void initializeSwing() {
 		JFrame f = new JFrame("Tetris");
 		td = new TetrisDrawable(width, height);
@@ -101,7 +92,7 @@ public class SwingPlayfield extends Playfield {
 		placeWithoutClearing(op, col);
 		update();
 		try {
-			Thread.sleep(100);
+			Thread.sleep(300);
 		} catch(InterruptedException e) {
 			// Do nothing.
 		}
@@ -110,7 +101,7 @@ public class SwingPlayfield extends Playfield {
 		update();
 		update();
 		try {
-			Thread.sleep(100);
+			Thread.sleep(300);
 		} catch(InterruptedException e) {
 			// Do nothing.
 		}

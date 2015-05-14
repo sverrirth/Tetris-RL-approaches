@@ -13,23 +13,29 @@ class CEWorker extends Thread {
 
 	@Override
 	public void run() {
+		while(!isInterrupted()) {
+			doone();
+		}
+	}
+
+	public void doone() {
 		Subproblem prob;
 		Perf perf;
-		while(!isInterrupted()) {
-			try {
-				prob = q.take();
-			} catch(InterruptedException e) {
-				System.out.println("Thread interrupted, exiting");
-				continue;
-			}
-			perf = new Perf();
-			perf.index = prob.index;
-			perf.performance = prob.problem.fitness(prob.parameters);
-			try {
-				qq.put(perf);
-			} catch(InterruptedException e) {
-				throw new RuntimeException("Thread interrupted while working");
-			}
+		try {
+			prob = q.take();
+		} catch(InterruptedException e) {
+			System.out.println("Thread interrupted, exiting.");
+			interrupt();
+			return;
+		}
+		perf = new Perf();
+		perf.index = prob.index;
+		perf.performance = prob.problem.fitness(prob.parameters);
+		try {
+			qq.put(perf);
+		} catch(InterruptedException e) {
+			interrupt();
+			throw new RuntimeException("Thread interrupted while working.");
 		}
 	}
 }

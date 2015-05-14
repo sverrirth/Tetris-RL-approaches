@@ -9,6 +9,8 @@ public class Playfield extends Grid {
 	 * True if the game is lost.
 	 */
 	private boolean terminated;
+	protected int nFull;
+	private static final boolean DEBUG = false;
 
 	/**
 	 * Creates an empty width x height playfield.
@@ -17,16 +19,22 @@ public class Playfield extends Grid {
 	 */
 	public Playfield(int width, int height) {
 		super(width, height);
+		nFull = 0;
+		if(height > 30) { throw new IllegalArgumentException("Playfield does not support such big playfields.");
+		}
 		terminated = false;
+		if(DEBUG) {
+			checkInvariants();
+		}
 	}
 
-	/**
-	 * Creates a copy of pf.
-	 * @param pf
-	 */
-	public Playfield(Playfield pf) {
-		super(pf);
+	public void setTo(Playfield pf) {
+		super.setTo(pf);
 		terminated = pf.terminated;
+		nFull = pf.nFull;
+		if(DEBUG) {
+			checkInvariants();
+		}
 	}
 
 	/**
@@ -37,9 +45,112 @@ public class Playfield extends Grid {
 	}
 
 	/**
+	 * Places p into the playfield, removing rows as needed.
+	 * @param p The piece to be dropped.
+	 * @param col The leftmost column of where the piece is to be dropped.
+	 * @return The number of rows cleared.
+	 */
+	public int place(OrientedPiece p, int col) {
+		placeWithoutClearing(p, col);
+		if(terminated) { return 0; }
+		int r = removeFull();
+		if(DEBUG) {
+			checkInvariants();
+		}
+		return r;
+	}
+
+	/**
+	 * Places p with its leftmost column at col.
+	 * @param p
+	 * @param col
+	 */
+	protected void placeWithoutClearing(OrientedPiece p, int col) {
+		if(col + p.width > width || col < 0) { throw new IllegalArgumentException("Piece placed outside of playfield!"); }
+		int placementHeight = 0;
+		for(int w = 0; w < p.width; w++) {
+			placementHeight = max(placementHeight, heightOf[col + w] - p.heightBelow[w]);
+		}
+		for(int w = 0; w < p.width; w++) {
+			heightOf[col + w] = placementHeight + p.heightOf[w];
+			columns[col + w] |= p.columns[w] << placementHeight;
+		}
+		if(placementHeight + p.height > height) {
+			terminated = true;
+		}
+		nFull += 4;
+		if(DEBUG) {
+			checkInvariants();
+		}
+	}
+
+	/**
+	 * Removes all full rows.
+	 * @return The number of rows removed.
+	 */
+	protected int removeFull() {
+		int ans = 0;
+		int fullRows = ~0;
+		for(int c : columns) {
+			fullRows &= c;
+		}
+		int index = 0;
+		while(fullRows > 0) {
+			if((fullRows & 1) == 1) {
+				removeRow(index);
+				ans++;
+			} else {
+				index++;
+			}
+			fullRows >>= 1;
+		}
+		if(DEBUG) {
+			checkInvariants();
+		}
+		return ans;
+	}
+
+	private void removeRow(int i) {
+		if(DEBUG) {
+			for(int c = 0; c < width; c++) {
+				if(!isSquareFull(i, c)) { throw new RuntimeException("Faulty call to removeRow()."); }
+			}
+		}
+		int lowermask = (1 << i) - 1;
+		int highermask = ~((1 << i+1)-1);
+		for(int c = 0; c < width; c++) {
+			columns[c] = (columns[c] & highermask) >> 1 | columns[c] & lowermask;
+			heightOf[c] = calculateHeight(c);
+		}
+		nFull -= width;
+		if(DEBUG) {
+			checkInvariants();
+		}
+	}
+
+	// None of the methods below mutate the playfield.
+
+	private static int min(int a, int b) {
+		return a < b ? a : b;
+	}
+
+	private int wellsum() {
+		int ans = 0;
+		int m = heightOf[1] - heightOf[0];
+		ans += m > 0 ? m : 0;
+		for(int c = 2; c < width; c++) {
+			m = min(heightOf[c - 2], heightOf[c]) - heightOf[c - 1];
+			ans += m > 0 ? m : 0;
+		}
+		m = heightOf[width - 1] - heightOf[width - 2];
+		ans += m > 0 ? m : 0;
+		return ans;
+	}
+
+	/**
 	 * @return The number of empty squares with a full square somewhere above it.
 	 */
-	public int numberOfHoles() {
+	private int numberOfHoles() {
 		int ans = 0;
 		for(int c : columns) {
 			while(c > 0) {
@@ -52,67 +163,94 @@ public class Playfield extends Grid {
 		return ans;
 	}
 
-	/**
-	 * Places p into the playfield, removing rows as needed.
-	 * @param p The piece to be dropped.
-	 * @param col The leftmost column of where the piece is to be dropped.
-	 * @return The number of rows cleared.
-	 */
-	public int place(OrientedPiece p, int col) {
-		placeWithoutClearing(p, col);
-		if(terminated) { return 0; }
-		return removeFull();
-	}
-
-	/**
-	 * Places p with its leftmost column at col.
-	 * @param p
-	 * @param col
-	 */
-	protected void placeWithoutClearing(OrientedPiece p, int col) {
-		if(col + p.width > width || col < 0) { throw new IllegalArgumentException("Piece placed outside of playfield!"); }
-		int placementHeight = 0;
-		for(int w = 0; w < p.width; w++) {
-			placementHeight = max(placementHeight, heightOf(col + w) - p.spaceBelow(w));
-		}
-		if(placementHeight + p.getHeight() > height) {
-			terminated = true;
-			return;
-		}
-		for(int w = 0; w < p.width; w++) {
-			int added = p.getColumn(w) << placementHeight;
-			columns[col + w] |= added;
-		}
-	}
-
-	/**
-	 * Removes all ful rows.
-	 * @return The number of rows removed.
-	 */
-	protected int removeFull() {
+	private int coltrans() {
 		int ans = 0;
-		for(int i = height - 1; i >= 0; i--) {
-			int mask = 1 << i;
-			boolean rowFull = true;
-			for(int col : columns) {
-				if((col & mask) != mask) {
-					rowFull = false;
-					break;
-				}
-			}
-			if(rowFull) {
-				removeRow(i);
-				ans++;
-			}
+		for(int x : columns) {
+			// x & ~x << 1 is 1 exactly where a 1 changes to a 0.
+			// ~x & x << 1 is 1 exactly where a 0 changes to a 1.
+			ans += Integer.bitCount(x & ~x << 1 | ~x & x << 1);
 		}
 		return ans;
 	}
 
-	protected void removeRow(int i) {
-		int lowermask = (1 << i) - 1;
-		int highermask = (1 << height) - 1 - lowermask - (1 << i);
-		for(int c = 0; c < width; c++) {
-			columns[c] = (columns[c] & highermask) >> 1 | columns[c] & lowermask;
+	private int rowtrans() {
+		int ans = 0;
+		for(int c = 1; c < width; c++) {
+			ans += Integer.bitCount(columns[c] ^ columns[c - 1]);
 		}
+		return ans;
+	}
+
+	public void checkInvariants() {
+		if(isTerminal()) { return; }
+		int heightSum = 0;
+		int full = 0;
+		for(int w = 0; w < height; w++) {
+			for(int c = 0; c < width; c++) {
+				if(isSquareFull(w, c)) {
+					full++;
+				}
+			}
+		}
+		if(full != nFull) { throw new RuntimeException(); }
+		for(int w = 0; w < width; w++) {
+			if(heightOf[w] != calculateHeight(w)) { throw new RuntimeException(); }
+			heightSum += heightOf[w];
+		}
+		if(heightSum - nFull != numberOfHoles()) { throw new RuntimeException(); }
+	}
+
+	// only for even widths.
+	public void symmetricBertsekasFeatures(int[] target) {
+		int maxh = 0;
+		int h;
+		int h2;
+		target[width] = -nFull;
+		for(int w = 0; w < width/2; w++) {
+			h = heightOf[w];
+			h2 = heightOf[width-w-1];
+			target[w] = h + h2;
+			maxh = maxh>h?maxh:h;
+			maxh = maxh>h2?maxh:h2;
+			target[width] += h+h2;
+		}
+		for(int w = 0; w < width/2-1; w++) {
+			target[width/2 + w] = abs(heightOf[w+1]-heightOf[w]) + abs(heightOf[width-w-1]-heightOf[width-w-2]);
+		}
+		target[width-1] = abs(heightOf[width/2] - heightOf[width/2-1]);
+		target[width+1] = maxh;
+	}
+
+	public void bertsekasFeatures(int[] target) {
+		int maxh = 0;
+		target[2 * width] = -nFull;
+		target[0] = heightOf[0];
+		for(int w = 1; w < width; w++) {
+			int h = heightOf[w];
+			target[w] = h;
+			target[2 * width] += h;
+			target[width + w] = abs(h - target[w - 1]);
+			maxh = h > maxh ? h : maxh;
+		}
+		target[width] = maxh;
+	}
+
+	public void mixedFeatures(int[] target) {
+		bertsekasFeatures(target);
+		target[2 * width + 1] = coltrans();
+		target[2 * width + 2] = rowtrans();
+		target[2 * width + 3] = wellsum();
+	}
+
+	// Only for even widths.
+	public void symmetricMixedFeatures(int[] target) {
+		symmetricBertsekasFeatures(target);
+		target[width + 2] = coltrans();
+		target[width + 3] = rowtrans();
+		target[width + 4] = wellsum();
+	}
+
+	private static int abs(int x) {
+		return x > 0 ? x : -x;
 	}
 }

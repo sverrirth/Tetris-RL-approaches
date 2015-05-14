@@ -3,36 +3,26 @@ package tetris;
 import java.util.Random;
 
 public class Tetris implements cemethod.CEProblem {
-	public class Result {
-		public final int lines;
-		public final int pieces;
-
-		public Result(int lines, int pieces) {
-			this.lines = lines;
-			this.pieces = pieces;
-		}
-	}
-
 	private final int h;
 	private final int w;
 	private final Random r;
 
-	public Tetris(int w, int h) {
-		r = new Random();
+	public Tetris(int w, int h, Random r) {
+		this.r = r;
 		this.w = w;
 		this.h = h;
 	}
 
 	@Override
 	public int dimension() {
-		return 22;
+		return w + 5;
 	}
 
 	@Override
 	public double fitness(double[] v) {
 		double perf = 0;
 		for(int i = 0; i < 30; i++) {
-			perf += runTrial(v, false).pieces;
+			perf += runTrial(v, false);
 		}
 		perf /= 30;
 		return perf;
@@ -43,15 +33,19 @@ public class Tetris implements cemethod.CEProblem {
 		return Piece.PIECES[n];
 	}
 
-	public Result runTrial(double[] param, boolean display) {
+	public int runTrial(double[] param, boolean display) {
 		Playfield b;
 		if(display) {
 			b = new SwingPlayfield(w, h);
 		} else {
 			b = new Playfield(w, h);
 		}
+
+		// Scratch memory:
+		int[] mem = new int[dimension()];
+		Playfield tmp = new Playfield(w, h);
+
 		int lines = 0;
-		int placed = 0;
 		while(!b.isTerminal()) {
 			Piece current = getRandomPiece();
 			OrientedPiece bestPiece = null;
@@ -59,9 +53,9 @@ public class Tetris implements cemethod.CEProblem {
 			double bestVal = 0;
 			for(OrientedPiece op : current) {
 				for(int c = 0; c + op.width <= b.width; c++) {
-					Playfield testBoard = new Playfield(b);
-					testBoard.place(op, c);
-					double val = eval(testBoard, param);
+					tmp.setTo(b);
+					tmp.place(op, c);
+					double val = eval(tmp, param, mem);
 					if(val > bestVal || bestPiece == null) {
 						bestVal = val;
 						bestPiece = op;
@@ -70,34 +64,17 @@ public class Tetris implements cemethod.CEProblem {
 				}
 			}
 			lines += b.place(bestPiece, bestCol);
-			placed++;
 		}
-		return new Result(lines, placed);
+		return lines;
 	}
 
-	private static int abs(int x) {
-		return x > 0 ? x : -x;
-	}
-
-	public static double eval(Playfield b, double[] par) {
+	public static double eval(Playfield b, double[] par, int[] mem) {
 		if(b.isTerminal()) { return -1.0 / 0.0; }
-		int maxh = 0;
-		int minh = 0;
-		int hi = 0;
-		int lasth = 0;
 		double ans = 0;
-		for(int c = 0; c < b.width; c++) {
-			hi = b.heightOf(c);
-			if(c > 0) {
-				ans += par[c + b.width] * abs(hi - lasth);
-			}
-			ans += par[c] * hi;
-			maxh = maxh < hi ? hi : maxh;
-			minh = minh > hi ? hi : minh;
-			lasth = hi;
+		b.symmetricMixedFeatures(mem);
+		for(int c = 0; c < par.length; c++) {
+			ans += par[c] * mem[c];
 		}
-		ans += par[b.width] * maxh;
-		ans += par[2 * b.width] * b.numberOfHoles();
 		return ans;
 	}
 }

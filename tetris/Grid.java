@@ -10,6 +10,7 @@ public class Grid {
 	 * from the bottom, is full.  
 	 */
 	protected final int[] columns;
+	protected final int[] heightOf;
 	/**
 	 * The height of the Playfield.
 	 */
@@ -24,49 +25,20 @@ public class Grid {
 		this.width = width;
 		this.height = height;
 		columns = new int[width];
-	}
-
-	/**
-	 * @param g The grid to copy.
-	 */
-	public Grid(Grid g) {
-		height = g.height;
-		width = g.width;
-		columns = Arrays.copyOf(g.columns, width);
+		heightOf = new int[width];
 	}
 
 	/**
 	 * @param column
 	 * @return The height of column number column.
 	 */
-	public int heightOf(int column) {
+	protected int calculateHeight(int column) {
 		int c = columns[column];
 		int ans = 0;
 		while(c > 0) {
 			ans += 1;
 			c >>= 1;
 		}
-		return ans;
-	}
-
-	/**
-	 * The height of the empty space under the grid in
-	 * column index.
-	 * Example:
-	 * ##_
-	 * #_#
-	 * #__
-	 *  has heights 0, 2, and 1 respectively.
-	 * @param column
-	 * @return The height below column number column.
-	 */
-	public int spaceBelow(int column) {
-		int c = columns[column];
-		int ans = 1;
-		while(c == c >> ans << ans) {
-			ans++;
-		}
-		ans--;
 		return ans;
 	}
 
@@ -116,5 +88,12 @@ public class Grid {
 		if(height != other.height) { return false; }
 		if(width != other.width) { return false; }
 		return true;
+	}
+
+	public void setTo(Grid g) {
+		for(int c = 0; c < width; c++) {
+			columns[c] = g.columns[c];
+			heightOf[c] = g.heightOf[c];
+		}
 	}
 }
