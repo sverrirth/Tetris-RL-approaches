@@ -4,7 +4,16 @@ package tetris;
  * A piece for which an orientation has been chosen.
  */
 public class OrientedPiece extends Grid {
-	final int[] heightBelow;
+	/**
+	 * The height of the empty space under the grid in
+	 * column index.
+	 * Example:
+	 * ##_
+	 * #_#
+	 * #__
+	 *  has heights 0, 2, and 1 respectively.
+	 */
+	public final int[] heightBelow;
 
 	/**
 	 * @param a The piece.
@@ -25,18 +34,15 @@ public class OrientedPiece extends Grid {
 			heightBelow[c] = spaceBelow(c);
 			heightOf[c] = calculateHeight(c);
 		}
+		nFull = calcFull();
+		if(DEBUG) {
+			checkInvariants();
+		}
 	}
 
 	/**
-	 * The height of the empty space under the grid in
-	 * column index.
-	 * Example:
-	 * ##_
-	 * #_#
-	 * #__
-	 *  has heights 0, 2, and 1 respectively.
 	 * @param column
-	 * @return The height below column number column.
+	 * @return The value that should be in heightBelow[column].
 	 */
 	private int spaceBelow(int column) {
 		int c = columns[column];

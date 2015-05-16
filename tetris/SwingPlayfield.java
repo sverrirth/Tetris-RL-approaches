@@ -13,6 +13,16 @@ import javax.swing.JPanel;
  */
 public class SwingPlayfield extends Playfield {
 	/**
+	 * The number of lines clear since construction.
+	 */
+	private int lines;
+
+	/**
+	 * The JPanel we draw to.
+	 */
+	private TetrisDrawable td;
+
+	/**
 	 * A tetris playfield Swing component.
 	 */
 	class TetrisDrawable extends JPanel {
@@ -54,16 +64,6 @@ public class SwingPlayfield extends Playfield {
 			g.drawString(counter + " ", 10, 10);
 		}
 	}
-
-	/**
-	 * The number of lines clear since construction.
-	 */
-	private int lines;
-
-	/**
-	 * The JPanel we draw to.
-	 */
-	private TetrisDrawable td;
 
 	/**
 	 * @param width

@@ -24,7 +24,6 @@ class CEWorker extends Thread {
 		try {
 			prob = q.take();
 		} catch(InterruptedException e) {
-			System.out.println("Thread interrupted, exiting.");
 			interrupt();
 			return;
 		}

@@ -9,8 +9,6 @@ public class Playfield extends Grid {
 	 * True if the game is lost.
 	 */
 	private boolean terminated;
-	protected int nFull;
-	private static final boolean DEBUG = false;
 
 	/**
 	 * Creates an empty width x height playfield.
@@ -19,19 +17,20 @@ public class Playfield extends Grid {
 	 */
 	public Playfield(int width, int height) {
 		super(width, height);
-		nFull = 0;
-		if(height > 30) { throw new IllegalArgumentException("Playfield does not support such big playfields.");
-		}
+		if(height > 30) { throw new IllegalArgumentException("Playfield does not support such big playfields."); }
 		terminated = false;
 		if(DEBUG) {
 			checkInvariants();
 		}
 	}
 
+	/**
+	 * Copies pf into this Playfield.
+	 * @param pf
+	 */
 	public void setTo(Playfield pf) {
 		super.setTo(pf);
 		terminated = pf.terminated;
-		nFull = pf.nFull;
 		if(DEBUG) {
 			checkInvariants();
 		}
@@ -78,7 +77,7 @@ public class Playfield extends Grid {
 		if(placementHeight + p.height > height) {
 			terminated = true;
 		}
-		nFull += 4;
+		nFull += p.nFull;
 		if(DEBUG) {
 			checkInvariants();
 		}
@@ -117,7 +116,7 @@ public class Playfield extends Grid {
 			}
 		}
 		int lowermask = (1 << i) - 1;
-		int highermask = ~((1 << i+1)-1);
+		int highermask = ~((1 << i + 1) - 1);
 		for(int c = 0; c < width; c++) {
 			columns[c] = (columns[c] & highermask) >> 1 | columns[c] & lowermask;
 			heightOf[c] = calculateHeight(c);
@@ -137,29 +136,13 @@ public class Playfield extends Grid {
 	private int wellsum() {
 		int ans = 0;
 		int m = heightOf[1] - heightOf[0];
-		ans += m > 0 ? m : 0;
+		ans += m > 1 ? m : 0;
 		for(int c = 2; c < width; c++) {
 			m = min(heightOf[c - 2], heightOf[c]) - heightOf[c - 1];
-			ans += m > 0 ? m : 0;
+			ans += m > 1 ? m : 0;
 		}
 		m = heightOf[width - 1] - heightOf[width - 2];
-		ans += m > 0 ? m : 0;
-		return ans;
-	}
-
-	/**
-	 * @return The number of empty squares with a full square somewhere above it.
-	 */
-	private int numberOfHoles() {
-		int ans = 0;
-		for(int c : columns) {
-			while(c > 0) {
-				if((c & 1) == 0) {
-					ans++;
-				}
-				c >>= 1;
-			}
-		}
+		ans += m > 1 ? m : 0;
 		return ans;
 	}
 
@@ -181,46 +164,6 @@ public class Playfield extends Grid {
 		return ans;
 	}
 
-	public void checkInvariants() {
-		if(isTerminal()) { return; }
-		int heightSum = 0;
-		int full = 0;
-		for(int w = 0; w < height; w++) {
-			for(int c = 0; c < width; c++) {
-				if(isSquareFull(w, c)) {
-					full++;
-				}
-			}
-		}
-		if(full != nFull) { throw new RuntimeException(); }
-		for(int w = 0; w < width; w++) {
-			if(heightOf[w] != calculateHeight(w)) { throw new RuntimeException(); }
-			heightSum += heightOf[w];
-		}
-		if(heightSum - nFull != numberOfHoles()) { throw new RuntimeException(); }
-	}
-
-	// only for even widths.
-	public void symmetricBertsekasFeatures(int[] target) {
-		int maxh = 0;
-		int h;
-		int h2;
-		target[width] = -nFull;
-		for(int w = 0; w < width/2; w++) {
-			h = heightOf[w];
-			h2 = heightOf[width-w-1];
-			target[w] = h + h2;
-			maxh = maxh>h?maxh:h;
-			maxh = maxh>h2?maxh:h2;
-			target[width] += h+h2;
-		}
-		for(int w = 0; w < width/2-1; w++) {
-			target[width/2 + w] = abs(heightOf[w+1]-heightOf[w]) + abs(heightOf[width-w-1]-heightOf[width-w-2]);
-		}
-		target[width-1] = abs(heightOf[width/2] - heightOf[width/2-1]);
-		target[width+1] = maxh;
-	}
-
 	public void bertsekasFeatures(int[] target) {
 		int maxh = 0;
 		target[2 * width] = -nFull;
@@ -233,6 +176,30 @@ public class Playfield extends Grid {
 			maxh = h > maxh ? h : maxh;
 		}
 		target[width] = maxh;
+		target[2 * width] *= 10;
+	}
+
+	// only for even widths.
+	public void symmetricBertsekasFeatures(int[] target) {
+		int maxh = 0;
+		int h;
+		int h2;
+		target[width] = -nFull;
+		for(int w = 0; w < width / 2; w++) {
+			h = heightOf[w];
+			h2 = heightOf[width - w - 1];
+			target[w] = h + h2;
+			maxh = maxh > h ? maxh : h;
+			maxh = maxh > h2 ? maxh : h2;
+			target[width] += h + h2;
+		}
+		for(int w = 0; w < width / 2 - 1; w++) {
+			target[width / 2 + w] =
+				abs(heightOf[w + 1] - heightOf[w]) + abs(heightOf[width - w - 1] - heightOf[width - w - 2]);
+		}
+		target[width - 1] = abs(heightOf[width / 2] - heightOf[width / 2 - 1]);
+		target[width] *= 10;
+		target[width + 1] = maxh;
 	}
 
 	public void mixedFeatures(int[] target) {
@@ -252,5 +219,11 @@ public class Playfield extends Grid {
 
 	private static int abs(int x) {
 		return x > 0 ? x : -x;
+	}
+
+	@Override
+	public void checkInvariants() {
+		if(isTerminal()) { return; }
+		super.checkInvariants();
 	}
 }

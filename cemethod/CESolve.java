@@ -42,12 +42,13 @@ public final class CESolve {
 	 * @return The final value.
 	 * @throws InterruptedException In case it is interrupted while working.
 	 */
-	public double[] solve(CEProblem p, int sampleSizes, int kept, int generations) throws InterruptedException {
+	public double[] solve(CEProblem p, int sampleSizes, int kept, int generations, double minVariance)
+		throws InterruptedException {
 		Point sample;
 		Distribution d = new NormalDistribution(p.dimension());
 		List<Point> params = new ArrayList<Point>();
 
-		for(int gen = 1; gen <= generations; gen++) {
+		for(int gen = 1; gen <= generations && d.avgVar() > minVariance; gen++) {
 			params.clear();
 			for(int smpls = 0; smpls < sampleSizes; smpls++) {
 				sample = new Point(d.sample(r));
@@ -59,7 +60,8 @@ public final class CESolve {
 				params.get(perf.index).performance = perf.performance;
 			}
 			Collections.sort(params);
-			d = new NormalDistribution(params.subList(0, kept), 5.0 - 0.1*gen);
+			double noise = 3.0 - 0.1 * gen;
+			d = new NormalDistribution(params.subList(0, kept), noise > 0 ? noise : 0);
 
 			System.out.println("Done with generation " + gen + ": ");
 			for(Point point : params) {
