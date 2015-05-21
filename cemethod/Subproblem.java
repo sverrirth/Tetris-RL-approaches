@@ -1,6 +1,6 @@
 package cemethod;
 
-class Subproblem {
+public class Subproblem {
 	public CEProblem problem;
 	public double[] parameters;
 	public int index;

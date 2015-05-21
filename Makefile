@@ -8,8 +8,8 @@ smalltetris/State.class: smalltetris/State.java
 runsmall: smalltetris
 	java smalltetris.Game
 runbig:
-	javac tetris/*.java
-	javac cemethod/*.java
-	java tetris.Main
+	javac -cp "./commons-math3-3.5.jar:." tetris/*.java
+	javac -cp "./commons-math3-3.5.jar:." cemethod/*.java
+	java -cp "./commons-math3-3.5.jar:." tetris.Main
 clean:
 	rm -f smalltetris/*.class tetris/*.class cemethod/*.class

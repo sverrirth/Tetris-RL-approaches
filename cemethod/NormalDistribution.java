@@ -9,7 +9,7 @@ import java.util.Random;
  * each component has the same variance and that they all are
  * independent.
  */
-public class NormalDistribution implements Distribution {
+public class NormalDistribution {
 	/**
 	 * The dimensionality of the distribution.
 	 */
@@ -61,26 +61,14 @@ public class NormalDistribution implements Distribution {
 		var = nvar / nsamples / dim + noise;
 	}
 
-	/* (non-Javadoc)
-	 * @see tetris.Distr#avgVar()
-	 */
-	@Override
 	public double avgVar() {
 		return var;
 	}
 
-	/* (non-Javadoc)
-	 * @see tetris.Distr#getMean()
-	 */
-	@Override
 	public double[] getMean() {
 		return Arrays.copyOf(means, dim);
 	}
 
-	/* (non-Javadoc)
-	 * @see tetris.Distr#sample(java.util.Random)
-	 */
-	@Override
 	public double[] sample(Random rng) {
 		double[] ret = new double[dim];
 		for(int i = 0; i < dim; i++) {

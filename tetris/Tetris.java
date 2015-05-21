@@ -2,6 +2,9 @@ package tetris;
 
 import java.util.Random;
 
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomGenerator;
+
 /**
  * A specification of the Tetris problem. Capable of estimating the fitness
  * of AI parameters and simulating games.
@@ -16,19 +19,21 @@ public class Tetris implements cemethod.CEProblem {
 	 */
 	private final int w;
 	/**
-	 * Source of randomness.
+	 * Source of randomness for seed to Mersenne twister.
 	 */
 	private final Random r;
+	private int trials;
 
 	/**
 	 * @param w width of tetris playfield.
 	 * @param h height of tetris playfield.
 	 * @param r source of randomness for piece generation.
 	 */
-	public Tetris(int w, int h, Random r) {
+	public Tetris(int w, int h, Random r, int trials) {
 		this.r = r;
 		this.w = w;
 		this.h = h;
+		this.trials = trials;
 	}
 
 	/* (non-Javadoc)
@@ -45,15 +50,15 @@ public class Tetris implements cemethod.CEProblem {
 	@Override
 	public double fitness(double[] v) {
 		double perf = 0;
-		for(int i = 0; i < 50; i++) {
+		for(int i = 0; i < trials; i++) {
 			perf += runTrial(v, false);
 		}
-		perf /= 50;
+		perf /= trials;
 		return perf;
 	}
 
-	private Piece getRandomPiece() {
-		int n = r.nextInt(Piece.PIECES.length);
+	private static Piece getRandomPiece(RandomGenerator rng) {
+		int n = rng.nextInt(Piece.PIECES.length);
 		return Piece.PIECES[n];
 	}
 
@@ -74,10 +79,11 @@ public class Tetris implements cemethod.CEProblem {
 		// Scratch memory:
 		int[] mem = new int[dimension()];
 		Playfield tmp = new Playfield(w, h);
+		RandomGenerator rng = new MersenneTwister(r.nextLong());
 
 		int lines = 0;
 		while(!b.isTerminal()) {
-			Piece current = getRandomPiece();
+			Piece current = getRandomPiece(rng);
 			OrientedPiece bestPiece = null;
 			int bestCol = 0;
 			double bestVal = 0;

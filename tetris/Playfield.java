@@ -164,8 +164,24 @@ public class Playfield extends Grid {
 		return ans;
 	}
 
+	private int holeSums() {
+		int ans = 0;
+		for(int c : columns) {
+			int nHoles = 0;
+			while(c > 0) {
+				if((c & 1) == 1) {
+					ans += nHoles;
+				} else {
+					nHoles++;
+				}
+				c >>= 1;
+			}
+		}
+		return ans;
+	}
+
 	public void bertsekasFeatures(int[] target) {
-		int maxh = 0;
+		int maxh = heightOf[0];
 		target[2 * width] = -nFull;
 		target[0] = heightOf[0];
 		for(int w = 1; w < width; w++) {
@@ -176,7 +192,6 @@ public class Playfield extends Grid {
 			maxh = h > maxh ? h : maxh;
 		}
 		target[width] = maxh;
-		target[2 * width] *= 10;
 	}
 
 	// only for even widths.
@@ -198,23 +213,45 @@ public class Playfield extends Grid {
 				abs(heightOf[w + 1] - heightOf[w]) + abs(heightOf[width - w - 1] - heightOf[width - w - 2]);
 		}
 		target[width - 1] = abs(heightOf[width / 2] - heightOf[width / 2 - 1]);
-		target[width] *= 10;
 		target[width + 1] = maxh;
 	}
 
 	public void mixedFeatures(int[] target) {
 		bertsekasFeatures(target);
-		target[2 * width + 1] = coltrans();
-		target[2 * width + 2] = rowtrans();
-		target[2 * width + 3] = wellsum();
+		target[2 * width + 1] = holeSums();
+		target[2 * width + 2] = coltrans();
+		target[2 * width + 3] = rowtrans();
+		target[2 * width + 4] = wellsum();
 	}
 
 	// Only for even widths.
 	public void symmetricMixedFeatures(int[] target) {
 		symmetricBertsekasFeatures(target);
+		//target[width + 2] = holeSums();
 		target[width + 2] = coltrans();
 		target[width + 3] = rowtrans();
 		target[width + 4] = wellsum();
+	}
+
+	public void smallFeatures(int[] target) {
+		target[0] = -nFull;
+		target[1] = 0;
+		int maxh = 0;
+		for(int h : heightOf) {
+			maxh = 0;
+			maxh = h > maxh ? h : maxh;
+			target[0] += h;
+			target[1] += h;
+		}
+		target[2] = maxh;
+		target[3] = heightOf[0] + heightOf[width-1];
+		for(int i = 0; i < width - 1; i++) {
+			target[3] = abs(heightOf[i] - heightOf[i + 1]);
+		}
+		target[4] = holeSums();
+		target[5] = coltrans();
+		target[6] = rowtrans();
+		target[7] = wellsum();
 	}
 
 	private static int abs(int x) {

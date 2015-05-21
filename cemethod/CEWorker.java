@@ -2,11 +2,11 @@ package cemethod;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-class CEWorker extends Thread {
+public class CEWorker extends Thread {
 	LinkedBlockingQueue<Subproblem> q;
 	LinkedBlockingQueue<Perf> qq;
 
-	CEWorker(LinkedBlockingQueue<Subproblem> input, LinkedBlockingQueue<Perf> output) {
+	public CEWorker(LinkedBlockingQueue<Subproblem> input, LinkedBlockingQueue<Perf> output) {
 		q = input;
 		qq = output;
 	}
@@ -18,7 +18,7 @@ class CEWorker extends Thread {
 		}
 	}
 
-	public void doone() {
+	private void doone() {
 		Subproblem prob;
 		Perf perf;
 		try {
