@@ -11,7 +11,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 /**
  * This class implements the cross-entropy method for optimization.
  */
-public final class CESolve {
+public final class CESolver {
 	private LinkedBlockingQueue<Subproblem> q;
 	private LinkedBlockingQueue<Perf> qq;
 	private List<CEWorker> workers;
@@ -28,7 +28,7 @@ public final class CESolve {
 	/**
 	 * @param threads The number of threads to use when solving problems.
 	 */
-	public CESolve(int threads, RandomGenerator r) {
+	public CESolver(int threads, RandomGenerator r) {
 		q = new LinkedBlockingQueue<Subproblem>();
 		qq = new LinkedBlockingQueue<Perf>();
 		workers = new ArrayList<CEWorker>();
@@ -158,7 +158,7 @@ public final class CESolve {
 	public double[] solve() throws InterruptedException {
 		double[] best = null;
 		d = new GeneralNormalDistribution(problem.dimension(), r);
-		int save = elitists/2;
+		int save = elitists / 2;
 		double dist = 1.0 / 0.0;
 		double[] oldMean = d.getMeans();
 		double[] mean;

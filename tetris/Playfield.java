@@ -244,7 +244,7 @@ public class Playfield extends Grid {
 			target[1] += h;
 		}
 		target[2] = maxh;
-		target[3] = heightOf[0] + heightOf[width-1];
+		target[3] = heightOf[0] + heightOf[width - 1];
 		for(int i = 0; i < width - 1; i++) {
 			target[3] = abs(heightOf[i] - heightOf[i + 1]);
 		}

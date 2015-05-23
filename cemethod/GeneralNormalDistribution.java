@@ -13,7 +13,7 @@ public class GeneralNormalDistribution {
 	public final int dim;
 	private MultivariateNormalDistribution d;
 	private RandomGenerator r;
-	
+
 	/**
 	 * @param dimension the dimension required 
 	 */
@@ -66,7 +66,7 @@ public class GeneralNormalDistribution {
 		double ans = 0;
 		double[] a = d.getStandardDeviations();
 		for(double x : a) {
-			ans += x*x;
+			ans += x * x;
 		}
 		return ans / dim;
 	}
