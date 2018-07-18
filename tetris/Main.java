@@ -1,5 +1,6 @@
 package tetris;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,6 +16,9 @@ import cemethod.Subproblem;
  * Main runs a training session for Tetris. 
  */
 public final class Main {
+	
+	static final int nFeatures = 15;
+	
 	private Main() {
 	}
 
@@ -22,23 +26,28 @@ public final class Main {
 	 * @param args None.
 	 * @throws InterruptedException
 	 */
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException, IOException {
 		// To benchmark: give all RNGs an explicit seed
 		// and change number of threads to 1.
 
 		// Solver parameters:
+		
+		System.out.println("--- LATEST VERSION ---");
+		
 		int width = 10;
 		int trainingHeight = 14;
 		int evaluationHeight = 20;
 		int threads = 8;
 		int maxGenerations = 1000;
-		double minVariance = 0.2;
 		double initialNoise = 7.0;
 		double noiseStep = -0.1;
 		int generationSize = 100;
 		int elitistSize = 10;
-		Tetris training = new Tetris(width, trainingHeight, new Random(), 50);
-		Tetris evaluation = new Tetris(width, evaluationHeight, new Random(), 1000);
+		
+		boolean proportional = true;
+		
+		Tetris training = new Tetris(width, trainingHeight, new Random(), 50, nFeatures);
+		Tetris evaluation = new Tetris(width, evaluationHeight, new Random(), 1000, nFeatures);
 
 		if(args.length > 0) {
 			double[] par = new double[evaluation.dimension()];
@@ -60,12 +69,12 @@ public final class Main {
 		// Solver setup.
 		CESolver solver = new CESolver(threads, new MersenneTwister());
 		solver.setMaxGenerations(maxGenerations);
-		solver.setMinVariance(minVariance);
 		solver.setSamples(generationSize);
 		solver.setProblem(training);
 		solver.setElitists(elitistSize);
 		solver.setInitialNoise(initialNoise);
 		solver.setNoiseStep(noiseStep);
+		solver.setProportional(proportional);
 
 		// Run solver.
 		long startTime = System.nanoTime();
@@ -73,7 +82,7 @@ public final class Main {
 		solver.shutdown();
 		System.out.println("Trained in " + (System.nanoTime() - startTime) / 1000000 / 1000.0 + " seconds.");
 		System.out.println("Perf on training problem: " +
-			(int)new Tetris(width, trainingHeight, new Random(), 1000).fitness(opt));
+			(int)new Tetris(width, trainingHeight, new Random(), 1000, nFeatures).fitness(opt));
 		System.out.println("To test the fitness of these parameters, run \n" +
 			"java -cp \"./commons-math3-3.5.jar:.\" tetris.Main test " + parametersToString(opt));
 		System.out.println("To see a sample game, use \"show\" instead of \"test\"");

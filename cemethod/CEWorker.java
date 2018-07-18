@@ -14,11 +14,11 @@ public class CEWorker extends Thread {
 	@Override
 	public void run() {
 		while(!isInterrupted()) {
-			doone();
+			do_one();
 		}
 	}
 
-	private void doone() {
+	private void do_one() {
 		Subproblem prob;
 		Perf perf;
 		try {

@@ -1,5 +1,8 @@
 package tetris;
 
+import java.util.Arrays;
+import java.util.BitSet;
+
 /**
  * A playfield is a representation of the state of the playfield of a Tetris game.
  * It is a grid which pieces may be dropped into.
@@ -199,19 +202,25 @@ public class Playfield extends Grid {
 		int maxh = 0;
 		int h;
 		int h2;
+		
 		target[width] = -nFull;
-		for(int w = 0; w < width / 2; w++) {
+		
+		for (int w = 0; w < width / 2; w++) {
 			h = heightOf[w];
 			h2 = heightOf[width - w - 1];
 			target[w] = h + h2;
+			
 			maxh = maxh > h ? maxh : h;
 			maxh = maxh > h2 ? maxh : h2;
+			
 			target[width] += h + h2;
 		}
-		for(int w = 0; w < width / 2 - 1; w++) {
+		
+		for (int w = 0; w < width / 2 - 1; w++) {
 			target[width / 2 + w] =
 				abs(heightOf[w + 1] - heightOf[w]) + abs(heightOf[width - w - 1] - heightOf[width - w - 2]);
 		}
+		
 		target[width - 1] = abs(heightOf[width / 2] - heightOf[width / 2 - 1]);
 		target[width + 1] = maxh;
 	}
@@ -225,12 +234,74 @@ public class Playfield extends Grid {
 	}
 
 	// Only for even widths.
-	public void symmetricMixedFeatures(int[] target) {
-		symmetricBertsekasFeatures(target);
-		//target[width + 2] = holeSums();
-		target[width + 2] = coltrans();
-		target[width + 3] = rowtrans();
-		target[width + 4] = wellsum();
+	public void findFeatures(int[] target, BitSet featureSubset) {
+		int maxh = 0;
+		int h;
+		int h2;
+		
+		target[width] = -nFull;
+		
+		for (int w = 0; w < width / 2; w++) {
+			h = heightOf[w];
+			h2 = heightOf[width - w - 1];
+			target[w] = h + h2;
+			
+			maxh = maxh > h ? maxh : h;
+			maxh = maxh > h2 ? maxh : h2;
+			
+			target[width] += h + h2;
+		}
+		
+		for (int w = 0; w < width / 2 - 1; w++) {
+			target[width / 2 + w] =
+				abs(heightOf[w + 1] - heightOf[w]) + abs(heightOf[width - w - 1] - heightOf[width - w - 2]);
+		}
+		
+		target[width - 1] = abs(heightOf[width / 2] - heightOf[width / 2 - 1]);
+		
+		int i = width + 1;
+			
+		if(featureSubset.get(i)) {
+				
+			target[i] = maxh;
+				
+		} 
+		i++;
+		if(featureSubset.get(i)) {
+			
+			target[i] = coltrans();
+			
+		} 
+		i++;
+		if(featureSubset.get(i)) {
+			
+			target[i] = rowtrans();
+			
+		} 
+		i++;
+		if(featureSubset.get(i)) {
+			
+			target[i] = wellsum();
+			
+		} 
+		i++;
+		if(featureSubset.get(i)) {
+			
+			target[i] = holeSums();
+			
+		}
+		
+		/*synchronized (this) {
+		
+			System.out.println(toString());
+		
+			System.out.println(Arrays.toString(target));
+			
+			System.out.println("holesums = "  + holeSums());
+			
+			System.out.println("---");
+		
+		}*/
 	}
 
 	public void smallFeatures(int[] target) {

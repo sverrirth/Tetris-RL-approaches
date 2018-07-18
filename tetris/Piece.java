@@ -51,7 +51,7 @@ public class Piece implements Iterable<OrientedPiece> {
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
-	@Override
+	//@Override
 	public Iterator<OrientedPiece> iterator() {
 		return orientations.iterator();
 	}

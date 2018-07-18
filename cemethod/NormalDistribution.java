@@ -45,12 +45,17 @@ public class NormalDistribution {
 		dim = samples.get(0).par.length;
 		means = new double[dim];
 		int nsamples = samples.size();
+		
+		System.out.println("Best performance:" );
 		for(Point sample : samples) {
 			for(int i = 0; i < dim; i++) {
+				System.out.print(" " + sample.performance + ", ");
+				
 				double si = sample.par[i];
 				means[i] += si / nsamples;
 			}
 		}
+		System.out.println("");
 		double nvar = 0;
 		for(Point sample : samples) {
 			for(int i = 0; i < dim; i++) {

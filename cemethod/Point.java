@@ -25,7 +25,7 @@ class Point implements Comparable<Point> {
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
-	@Override
+	//@Override
 	public int compareTo(Point o) {
 		return -new Double(performance).compareTo(new Double(o.performance));
 	}
