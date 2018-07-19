@@ -9,6 +9,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 
 import cemethod.CESolver;
 import cemethod.CEWorker;
+import cemethod.MethodType;
 import cemethod.Perf;
 import cemethod.Subproblem;
 
@@ -44,8 +45,6 @@ public final class Main {
 		int generationSize = 100;
 		int elitistSize = 10;
 		
-		boolean proportional = true;
-		
 		Tetris training = new Tetris(width, trainingHeight, new Random(), 50, nFeatures);
 		Tetris evaluation = new Tetris(width, evaluationHeight, new Random(), 1000, nFeatures);
 
@@ -67,14 +66,13 @@ public final class Main {
 		}
 
 		// Solver setup.
-		CESolver solver = new CESolver(threads, new MersenneTwister());
+		CESolver solver = new CESolver(threads, new MersenneTwister(), MethodType.ELITIST);
 		solver.setMaxGenerations(maxGenerations);
 		solver.setSamples(generationSize);
 		solver.setProblem(training);
-		solver.setElitists(elitistSize);
+		solver.setNElitists(elitistSize);
 		solver.setInitialNoise(initialNoise);
 		solver.setNoiseStep(noiseStep);
-		solver.setProportional(proportional);
 
 		// Run solver.
 		long startTime = System.nanoTime();

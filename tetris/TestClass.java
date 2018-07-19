@@ -13,6 +13,8 @@ import cemethod.CESolver;
 
 public class TestClass {
 	
+	/*
+	
 	public static void writeToFile(String filename, String content) {
 		
 		FileWriter fw = null;
@@ -78,11 +80,11 @@ public class TestClass {
 		
 		if(proportional) {
 		
-			solver.setElitists(generationSize);
+			solver.setNElitists(generationSize);
 		
 		} else {
 			
-			solver.setElitists(elitistsSize);
+			solver.setNElitists(elitistsSize);
 			
 		}
 		solver.setInitialNoise(initialNoise);
@@ -166,7 +168,7 @@ public class TestClass {
 		
 		solver.setMaxGenerations(maxGenerations);
 		solver.setSamples(generationSize);
-		solver.setElitists(generationSize);
+		solver.setNElitists(generationSize);
 		solver.setInitialNoise(initialNoise);
 		solver.setNoiseStep(noiseStep);
 		
@@ -229,8 +231,8 @@ public class TestClass {
 			
 		}
 		
-		*/
-		
 	}
+	
+	*/
 
 }

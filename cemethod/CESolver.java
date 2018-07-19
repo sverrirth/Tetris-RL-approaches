@@ -1,22 +1,13 @@
 package cemethod;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.math3.random.RandomGenerator;
-
-import tetris.CompareMethods;
-import tetris.Tetris;
 
 /**
  * This class implements the cross-entropy method for optimization.
@@ -34,13 +25,6 @@ public final class CESolver {
 	private int nSamples;
 	private int nElitists;
 	private int maxGenerations;
-	private boolean proportional;
-	private boolean semiprop;
-	
-	public final static String proportionalFile = "comparisonResults/PROPORTIONAL/";
-	public final static String semiPropFile = "comparisonResults/SEMIPROP/";
-	public final static String elitismFile = "comparisonResults/ELITISM/";
-	
 	private CEProblemTemplate problem;
 	private RandomGenerator r;
 	
@@ -48,11 +32,13 @@ public final class CESolver {
 	private double initialNoise;
 	
 	public int[] bestSamples;
+	
+	private MethodType mt;
 
 	/**
 	 * @param threads The number of threads to use when solving problems.
 	 */
-	public CESolver(int threads, RandomGenerator r) {
+	public CESolver(int threads, RandomGenerator r, MethodType ct) {
 		q = new LinkedBlockingQueue<Subproblem>();
 		qq = new LinkedBlockingQueue<Perf>();
 		workers = new ArrayList<CEWorker>();
@@ -61,13 +47,21 @@ public final class CESolver {
 			workers.get(i).start();
 		}
 		this.r = r;
+		this.mt = ct;
 	}
 
 	/**
 	 * @return the samples
 	 */
-	public int getSamples() {
+	public int getNSamples() {
 		return nSamples;
+	}
+	
+	/**
+	 * @return the type of method
+	 */
+	public MethodType getCT() {
+		return mt;
 	}
 
 	/**
@@ -80,7 +74,7 @@ public final class CESolver {
 	/**
 	 * @return the number of elite samples per generation
 	 */
-	public int getElitists() {
+	public int getNElitists() {
 		return nElitists;
 	}
 
@@ -115,7 +109,7 @@ public final class CESolver {
 	/**
 	 * @param elitists the number of elite samples per generation
 	 */
-	public void setElitists(int elitists) {
+	public void setNElitists(int elitists) {
 		this.nElitists = elitists;
 	}
 
@@ -147,14 +141,6 @@ public final class CESolver {
 		this.problem = problem;
 	}
 	
-	public void setProportional(boolean proportional) {
-		this.proportional = proportional;
-	}
-	
-	public void setSemiProp(boolean semiprop) {
-		this.semiprop = semiprop;
-	}
-
 	/**
 	 * Sets the seed to n. Useful with threads = 1 for deterministic execution.
 	 * @param n
@@ -185,35 +171,8 @@ public final class CESolver {
 			params.add(new Point(d.sample()));
 		}
 		
-		String fileName = "";
-		
-		if(proportional) {
-			
-			fileName = proportionalFile;
-			
-		} else if (semiprop) {
-			
-			fileName = semiPropFile;
-			
-		} else {
-			
-			fileName = elitismFile;
-			
-		}
-		
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-		
-		fileName += nSamples + "S_" + nElitists + "E_" + dateFormat.format(new Date());
-				
-		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true));
-		writer.newLine();
-		writer.append("nSamples " + nSamples + ", nElitists " + nElitists + 
-				", initialNoise " + initialNoise + ", noiseStep " + noiseStep + 
-				", height " + CompareMethods.height + ", nFeatures = " + problem.dimension() + 
-				", nTrials " + problem.getNTrials() +
-				": " );
-		writer.newLine();
-		writer.flush();
+		DataWriter dwriter = new DataWriter(problem, this);
+		dwriter.init();
 
 		for(int gen = 1; gen <= maxGenerations; gen++) {
 			
@@ -235,43 +194,27 @@ public final class CESolver {
 			
 			List<Point> elites = params.subList(0, nElitists);
 			System.out.println("Standard deviation of scores: " + scoreDeviation(elites));
-			d.fitTo(elites, noise > 0 ? noise : 0, proportional);
+			
+			d.fitTo(mt.equals(MethodType.ELITIST) ?
+							params.subList(0, nElitists) :
+							params,
+					noise > 0 ? noise : 0, 
+					mt.equals(MethodType.PROPORTIONAL) || mt.equals(MethodType.SEMIPROP));
+			
 			mean = d.getMeans();
 			dist = l2(mean, oldMean);
 			oldMean = mean;
 			print(gen, params, dist);
 			best = params.get(0).par;
 			
-			writer.append(gen + ". Score " + Double.toString(params.get(0).performance) + "; " + params.get(0).toString().replace("[", "{").replace("]", "}") + ". ");
-			writer.newLine();
-			writer.flush();
+			dwriter.writeData(params.get(0), gen);
 			
 			System.out.println("Best parameters found: " + (params.get(0).toString()).replace("[", "{").replace("]", "}"));
 			System.out.println("----------------------------------------");
-		
-			if(gen % 200 == 0) {
-				
-				Tetris tetris = new Tetris(10, 20, new Random(), 100, params.get(0).par.length);
-				
-				tetris.setFeatureSubset(problem.getFeatureSubset());
-				
-				ArrayList<Integer> results = new ArrayList<Integer>();
-				
-				for(int i=0; i<100; i++) {
-				
-					results.add(tetris.runTrial(params.get(0).par, false));
-				
-				}
-				
-				writer.append("Average performance now of best params: " + results.stream().mapToInt(val -> val).average().orElse(0.0));
-				writer.newLine();
-				writer.flush();
-				
-			}
 			
 		}
 		
-		writer.close();
+		dwriter.end();
 		
 		return best;
 	}

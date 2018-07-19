@@ -118,4 +118,10 @@ public class Tetris extends cemethod.CEProblem {
 		}
 		return ans;
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%1$s: height %2$s, width %3$s", "TETRIS", h, w);
+	}
+	
 }
