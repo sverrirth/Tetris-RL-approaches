@@ -15,7 +15,7 @@ public class CompareMethods {
 	
 	private static final int MAX_GEN = 150;
 	
-	private static int nThreads = 8;
+	private static int nThreads = 32;
 	private static int nElitists = 10;
 	private static double initialNoise = 50.0;
 	private static double noiseStep = -0.1;
