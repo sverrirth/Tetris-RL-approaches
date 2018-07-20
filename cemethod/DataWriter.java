@@ -13,6 +13,8 @@ public class DataWriter {
 	private static final int EVAL_FREQ = 10;
 	private static final int N_TRIALS = 50;
 	
+	public static final String DATA_FOLDER = "methodsComparisonData/";
+	
 	private BufferedWriter writer;
 	
 	private CEProblemTemplate ceproblem;
@@ -25,11 +27,19 @@ public class DataWriter {
 		this.ct = ces.getCT();
 		this.ces = ces;
 		
-		String fileName = String.format("methodsComparison/%1$s/%2$s-%3$s-%4$s/%5$s", 
+		String fileName = String.format(DATA_FOLDER
+				+ "%1$s/"
+				+ "%2$s/"
+				+ "%3$s-%4$s-%5$s/"
+				+ "%6$sI-%7$sS/"
+				+ "%8$s", 
+				ces,
 				ct.toString(),
 				ces.getNSamples(),
 				ces.getNElitists(),
 				cept.getNTrials(),
+				ces.getInitialNoise(),
+				ces.getNoiseStep(),
 				new SimpleDateFormat("yyyy-MM-dd---HH-mm-ss").format(new Date()));
 		
 		File file = new File(fileName);
