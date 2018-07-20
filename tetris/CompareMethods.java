@@ -18,21 +18,26 @@ public class CompareMethods {
 	public static int height = 20;
 	public static int width = 10;
 	
-	private static final int MAX_GEN = 150;
+	private static final int MAX_GEN = 10;
 	
 	private static int nThreads = 8;
-	private static int nElitists = 10;
+	private static int nElitists = 12;
 	private static double initialNoise = 50.0;
 	private static double noiseStep = -0.1;
 	
-	private static int populationSize = 100;
+	private static int populationSize = 25;
 	private static int nTrials = 1;
 	
 	private static MethodType[] methods = {MethodType.ELITIST, MethodType.SEMIPROP};
 	
 	private static BitSet featureBits = BitSet.valueOf(new long[] {0b011_111_111_111_111_1});
 	
+	private static cemethod.CEProblem cem;
+	
 	public static void main(String[] args) {
+		
+		cem = new Tetris(width, height, new Random(), nTrials, featureBits.cardinality());
+		cem.setFeatureSubset(featureBits);
 		
 		int trialIdx = 0;
 		
@@ -40,12 +45,9 @@ public class CompareMethods {
 		
 			MethodType mt = methods[trialIdx % methods.length];
 			
-			Tetris tetris = new Tetris(width, height, new Random(), nTrials, featureBits.cardinality());
-			tetris.setFeatureSubset(featureBits);
-			
 			CESolver solver = new CESolver(nThreads, new MersenneTwister(), mt);
 			
-			solver.setProblem(tetris);
+			solver.setProblem(cem);
 			solver.setMaxGenerations(MAX_GEN);
 			solver.setInitialNoise(initialNoise);
 			solver.setNoiseStep(noiseStep);
@@ -83,16 +85,21 @@ public class CompareMethods {
 			
 			for (MethodType mt : methods) {
 			
-				File folder = new File(
-						DataWriter.DATA_FOLDER + 
+				String name = DataWriter.DATA_FOLDER + 
+						cem.toString() + "/" +
 						mt.toString() + "/" +
 						populationSize + "-" +
 						nElitists + "-" +
-						populationSize + "/");
+						nTrials + "/" +
+						initialNoise + "_" + noiseStep;
+				
+				File folder = new File(name);
+				
+				ArrayList<Double> methodData = new ArrayList<Double>();
+				
+				int runs = 0;
 				
 				for (File file : folder.listFiles()) {
-					
-					ArrayList<Double> methodData = new ArrayList<Double>();
 					
 					FileReader freader = new FileReader(file);
 					
@@ -100,13 +107,27 @@ public class CompareMethods {
 					
 					String line = br.readLine();
 					
+					int idx = 0;
+					
 					while(line != null) {
 						
 						if(line.substring(0, 3).equals("AVG")) {
 							
 							String value = line.split(":")[1].substring(1);
 							
-							methodData.add(Double.parseDouble(value));
+							double dValue = Double.parseDouble(value);
+							
+							if (methodData.size() > idx) {
+								
+								methodData.set(idx, (methodData.get(idx) * runs + dValue)/(runs + 1)); //calculate average online
+								
+							} else {
+							
+								methodData.add(dValue);
+								
+							}
+							
+							idx++;
 							
 						}
 						
@@ -114,20 +135,64 @@ public class CompareMethods {
 						
 					}
 					
-					data.add(methodData);
+					br.close();
 					
-					System.out.println(methodData.toString());
+					runs++;
 					
 				}
+				
+				data.add(methodData);
 			
 			}
+			
+			PythonPlot plot = new PythonPlot(false);
+			
+			int idx = 0;
+			
+			for(MethodType method : methods) {
+			
+				ArrayList<Integer> xaxis = new ArrayList<Integer>();
+				
+				for(int i = 0; i < data.get(idx).size(); i++) {
+					
+					xaxis.add(i * 10);
+					
+				}
+				
+				plot.plot().add(xaxis, data.get(idx)).label(method.name());
+				
+				idx++;
+				
+			}
+			
+			plot.legend();
+			
+			String plotName =
+					
+					DataWriter.DATA_FOLDER + 
+					cem.toString() + "_" +
+					populationSize + "_" +
+					nElitists + "_" +
+					nTrials + "_" +
+					initialNoise + "_" + 
+					noiseStep +
+					".png";
+			
+			plot.savefig(plotName);
+			
+			plot.executeSilently();
+			
+			plot.close();
 			
 		} catch (Exception e) {
 			
 			e.printStackTrace();
+			return;
 			//handle later
 			
 		}
+		
+		//for (ArrayList)
 		
 		
 		

@@ -18,23 +18,23 @@ public class DataWriter {
 	private BufferedWriter writer;
 	
 	private CEProblemTemplate ceproblem;
-	private MethodType ct;
+	private MethodType method;
 	private CESolver ces;
 	
 	public DataWriter(CEProblemTemplate cept, CESolver ces) {
 
 		this.ceproblem = cept;
-		this.ct = ces.getCT();
+		this.method = ces.getCT();
 		this.ces = ces;
 		
 		String fileName = String.format(DATA_FOLDER
 				+ "%1$s/"
 				+ "%2$s/"
 				+ "%3$s-%4$s-%5$s/"
-				+ "%6$sI-%7$sS/"
+				+ "%6$s_%7$s/"
 				+ "%8$s", 
-				ces,
-				ct.toString(),
+				cept.toString(),
+				method.toString(),
 				ces.getNSamples(),
 				ces.getNElitists(),
 				cept.getNTrials(),

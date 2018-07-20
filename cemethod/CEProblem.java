@@ -42,7 +42,5 @@ public abstract class CEProblem implements CEProblemTemplate {
 		perf /= nTrials;
 		return perf;
 	}
-	
-	
 
 }
