@@ -18,14 +18,14 @@ public class CompareMethods {
 	public static int height = 20;
 	public static int width = 10;
 	
-	private static final int MAX_GEN = 10;
+	private static final int MAX_GEN = 100;
 	
 	private static int nThreads = 8;
-	private static int nElitists = 12;
+	private static int nElitists = 10;
 	private static double initialNoise = 50.0;
 	private static double noiseStep = -0.1;
 	
-	private static int populationSize = 25;
+	private static int populationSize = 100;
 	private static int nTrials = 1;
 	
 	private static MethodType[] methods = {MethodType.ELITIST, MethodType.SEMIPROP};
