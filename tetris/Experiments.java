@@ -13,12 +13,12 @@ import cemethod.CESolver;
 import cemethod.DataWriter;
 import cemethod.MethodType;
 
-public class CompareMethods {
+public class Experiments {
 	
 	public static int height = 20;
 	public static int width = 10;
 	
-	private static final int MAX_GEN = 100;
+	private static final int MAX_GEN = 20;
 	
 	private static int nThreads = 32;
 	private static int nElitists = 10;
@@ -102,7 +102,6 @@ public class CompareMethods {
 				for (File file : folder.listFiles()) {
 					
 					FileReader freader = new FileReader(file);
-					
 					BufferedReader br = new BufferedReader(freader);
 					
 					String line = br.readLine();
@@ -114,7 +113,6 @@ public class CompareMethods {
 						if(line.substring(0, 3).equals("AVG")) {
 							
 							String value = line.split(":")[1].substring(1);
-							
 							double dValue = Double.parseDouble(value);
 							
 							if (methodData.size() > idx) {
@@ -130,19 +128,12 @@ public class CompareMethods {
 							idx++;
 							
 						}
-						
-						line = br.readLine();
-						
+						line = br.readLine();	
 					}
-					
 					br.close();
-					
-					runs++;
-					
+					runs++;		
 				}
-				
 				data.add(methodData);
-			
 			}
 			
 			PythonPlot plot = new PythonPlot(false);
@@ -179,9 +170,7 @@ public class CompareMethods {
 					".png";
 			
 			plot.savefig(plotName);
-			
 			plot.executeSilently();
-			
 			plot.close();
 			
 		} catch (Exception e) {
@@ -191,10 +180,6 @@ public class CompareMethods {
 			//handle later
 			
 		}
-		
-		//for (ArrayList)
-		
-		
 		
 	}
 

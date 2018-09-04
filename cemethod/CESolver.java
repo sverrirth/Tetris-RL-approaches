@@ -1,12 +1,23 @@
 package cemethod;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+
+import org.apache.commons.csv.*;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -160,63 +171,84 @@ public final class CESolver {
 	 * @throws InterruptedException In case it is interrupted while working.
 	 */
 	public double[] solve() throws InterruptedException, IOException {
-		double[] best = null;
-		d = new GeneralNormalDistribution(problem.dimension(), r);
-		int save = nElitists / 2;
-		double dist = 1.0 / 0.0;
-		double[] oldMean = d.getMeans();
-		double[] mean;
-		List<Point> params = new ArrayList<Point>();
-		for(int i = 0; i < nSamples; i++) {
-			params.add(new Point(d.sample()));
+		
+		String filename = "m_data/test.csv";
+	    
+	    BufferedWriter writer = Files.newBufferedWriter(Paths.get(filename));
+	    CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+	    
+		while(true) {
+		
+			double[] best = null;
+			d = new GeneralNormalDistribution(problem.dimension(), r);
+			int save = nElitists / 2;
+			double dist = 1.0 / 0.0;
+			double[] oldMean = d.getMeans();
+			double[] mean;
+			List<Point> params = new ArrayList<Point>();
+			for(int i = 0; i < nSamples; i++) {
+				params.add(new Point(d.sample()));
+			}
+			
+			DataWriter dwriter = new DataWriter(problem, this);
+			dwriter.init();
+			
+			ArrayList<String> variances = new ArrayList<String>();
+			
+			BufferedReader reader = new BufferedReader(new FileReader(filename), 1048576 * 10);
+		    Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(reader);
+			for(int gen = 1; gen <= maxGenerations; gen++) {
+				
+				//System.out.println("Generation " + gen + " processing...");
+				
+				double performance = problem.fitness_variance(d.getMeans());
+				
+				variances.add(String.valueOf(performance));
+				
+				for(int i = save; i < nSamples; i++) {
+					params.set(i, new Point(d.sample()));
+				}
+				for(int i = 0; i < nSamples; i++) {
+					q.add(new Subproblem(problem, params.get(i).par, i));
+				}
+				for(int i = 0; i < nSamples; i++) {
+					Perf perf = qq.take();
+					params.get(perf.index).performance = perf.performance;
+				}
+	
+				Collections.sort(params);
+				double noise = initialNoise + noiseStep * gen;
+				
+				List<Point> elites = params.subList(0, nElitists);
+				System.out.println("Standard deviation of scores: " + scoreDeviation(elites));
+				
+				d.fitTo(mt.equals(MethodType.ELITIST) ?
+								params.subList(0, nElitists) :
+								params,
+						noise > 0 ? noise : 0, 
+						mt.equals(MethodType.PROPORTIONAL) || mt.equals(MethodType.SEMIPROP));
+				
+				mean = d.getMeans();
+				dist = l2(mean, oldMean);
+				oldMean = mean;
+				print(gen, params, dist);
+				best = params.get(0).par;
+				
+				dwriter.writeData(params.get(0), gen);
+				
+				//System.out.println("Best parameters found: " + (params.get(0).toString()).replace("[", "{").replace("]", "}"));
+				//System.out.println("----------------------------------------");
+				
+			}
+			
+			csvPrinter.printRecord(variances);
+			
+			csvPrinter.flush();
+			
+			dwriter.end();
+			
 		}
 		
-		DataWriter dwriter = new DataWriter(problem, this);
-		dwriter.init();
-
-		for(int gen = 1; gen <= maxGenerations; gen++) {
-			
-			System.out.println("Generation " + gen + " processing...");
-			
-			for(int i = save; i < nSamples; i++) {
-				params.set(i, new Point(d.sample()));
-			}
-			for(int i = 0; i < nSamples; i++) {
-				q.add(new Subproblem(problem, params.get(i).par, i));
-			}
-			for(int i = 0; i < nSamples; i++) {
-				Perf perf = qq.take();
-				params.get(perf.index).performance = perf.performance;
-			}
-
-			Collections.sort(params);
-			double noise = initialNoise + noiseStep * gen;
-			
-			List<Point> elites = params.subList(0, nElitists);
-			System.out.println("Standard deviation of scores: " + scoreDeviation(elites));
-			
-			d.fitTo(mt.equals(MethodType.ELITIST) ?
-							params.subList(0, nElitists) :
-							params,
-					noise > 0 ? noise : 0, 
-					mt.equals(MethodType.PROPORTIONAL) || mt.equals(MethodType.SEMIPROP));
-			
-			mean = d.getMeans();
-			dist = l2(mean, oldMean);
-			oldMean = mean;
-			print(gen, params, dist);
-			best = params.get(0).par;
-			
-			dwriter.writeData(params.get(0), gen);
-			
-			System.out.println("Best parameters found: " + (params.get(0).toString()).replace("[", "{").replace("]", "}"));
-			System.out.println("----------------------------------------");
-			
-		}
-		
-		dwriter.end();
-		
-		return best;
 	}
 
 	private static double scoreDeviation(List<Point> l) {

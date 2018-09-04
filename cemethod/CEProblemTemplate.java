@@ -22,6 +22,8 @@ public interface CEProblemTemplate {
 	 */
 	double fitness(double[] v);
 	
+	double fitness_variance(double[] v);
+	
 	int getNTrials();
 	
 	int runTrial(double[] param, boolean display);  //TODO: remove variable display
